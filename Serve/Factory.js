@@ -122,7 +122,7 @@ Factory.Scss.prototype.build = function(done) {
       ? done(['無法編譯：' + this.name, '錯誤位置：第 ' + error.line + ' 行，第 ' + error.column + ' 個字', '錯誤原因：' + error.info])
       : verifyDirs(Factory.config.dir.css, this.dirs) !== true
         ? done(['無法建立目錄：' + Path.dirname(Path.relative(Factory.root, this.css)) + Path.sep])
-        : FileSystem.writeFile(this.css, result.utf8, error => error
+        : FileSystem.writeFile(this.css, result.utf8.replace(/^\uFEFF/gm, ""), error => error
           ? done(['無法寫入：' + Path.relative(Factory.root, this.css), error])
           : done([])))
 
@@ -131,7 +131,7 @@ Factory.Scss.prototype.build = function(done) {
       ? done(lineRed('編譯 scss 失敗', '錯誤檔案：'.dim + this.name, '錯誤位置：'.dim + '第 ' + error.line + ' 行，第 ' + error.column + ' 個字', '錯誤原因：'.dim + error.info), Notifier('錯誤檔案：' + this.name + '\n錯誤位置：第 ' + error.line + ' 行，第 ' + error.column + ' 個字', '編譯 scss 失敗'))
       : verifyDirs(Factory.config.dir.css, this.dirs) !== true
         ? done(lineRed('無法建立目錄：' + Path.dirname(Path.relative(Factory.root, this.css)) + Path.sep), Notifier('無法建立目錄：' + Path.dirname(Path.relative(Factory.root, this.css)) + Path.sep))
-        : FileSystem.writeFile(this.css, result.utf8, error => error
+        : FileSystem.writeFile(this.css, result.utf8.replace(/^\uFEFF/gm, ""), error => error
           ? done(lineRed('新增 scss 失敗', '錯誤原因：'.dim + '無法寫入 ' + Path.relative(Factory.root, this.css) + '，' + error.message), Notifier('錯誤原因：無法寫入 ' + Path.relative(Factory.root, this.css) + '，' + error.message, '新增 scss 失敗'))
           : done(lineGreen('新增 scss 成功', '檔案路徑：'.dim + this.name.dim, '新增檔案：'.dim + Path.relative(Factory.root, this.css).dim, '編譯耗時：'.dim + (result.stats.duration / 1000) + ' 秒'.dim))))
 
@@ -140,7 +140,7 @@ Factory.Scss.prototype.build = function(done) {
       ? done(lineRed('編譯 scss 失敗', '錯誤檔案：'.dim + this.name, '錯誤位置：'.dim + '第 ' + error.line + ' 行，第 ' + error.column + ' 個字', '錯誤原因：'.dim + error.info), Notifier('錯誤檔案：' + this.name + '\n錯誤位置：第 ' + error.line + ' 行，第 ' + error.column + ' 個字', '編譯 scss 失敗'))
       : verifyDirs(Factory.config.dir.css, this.dirs) !== true
         ? done(lineRed('無法建立目錄：' + Path.dirname(Path.relative(Factory.root, this.css)) + Path.sep), Notifier('無法建立目錄：' + Path.dirname(Path.relative(Factory.root, this.css)) + Path.sep))
-        : FileSystem.writeFile(this.css, result.utf8, error => error
+        : FileSystem.writeFile(this.css, result.utf8.replace(/^\uFEFF/gm, ""), error => error
           ? done(lineRed('修改 scss 失敗', '錯誤原因：'.dim + '無法寫入 ' + Path.relative(Factory.root, this.css) + '，' + error.message), Notifier('錯誤原因：無法寫入 ' + Path.relative(Factory.root, this.css) + '，' + error.message, '修改 scss 失敗'))
           : done(lineGreen('修改 scss 成功', '檔案路徑：'.dim + this.name.dim, '更新檔案：'.dim + Path.relative(Factory.root, this.css).dim, '編譯耗時：'.dim + (result.stats.duration / 1000) + ' 秒'.dim))))
 
