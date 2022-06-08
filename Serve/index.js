@@ -25,7 +25,7 @@ let ready = false
 module.exports = {
   Start: closure => {
     process.on('SIGINT', _ => process.exit(1))
-    closure(println("\n" + ' § '.dim + '啟動 Lalilo 開發環境'.blod))
+    closure(println("\n" + ' § '.dim + '啟動 Lalilo 開發環境'.bold))
   },
   Check (closure) {
 

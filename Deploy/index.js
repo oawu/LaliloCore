@@ -23,7 +23,7 @@ const Setting = {
 module.exports = {
   Start: closure => {
     process.on('SIGINT', _ => process.exit(1))
-    closure(println("\n" + ' § '.dim + '部署 Lalilo'.blod))
+    closure(println("\n" + ' § '.dim + '部署 Lalilo'.bold))
   },
   Build (closure) {
     const Build = require('../Build')

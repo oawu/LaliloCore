@@ -24,7 +24,7 @@ const Setting = {
 module.exports = {
   Start: closure => {
     process.on('SIGINT', _ => process.exit(1))
-    closure(println("\n" + ' § '.dim + '編譯 Lalilo 專案'.blod))
+    closure(println("\n" + ' § '.dim + '編譯 Lalilo 專案'.bold))
   },
 
   Check (closure) {
