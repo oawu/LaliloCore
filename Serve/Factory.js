@@ -1,6 +1,6 @@
 /**
- * @author      OA Wu <comdan66@gmail.com>
- * @copyright   Copyright (c) 2015 - 2021, LaliloCore
+ * @author      OA Wu <oawu.twu@gmail.com>
+ * @copyright   Copyright (c) 2015 - 2022, LaliloCore
  * @license     http://opensource.org/licenses/MIT  MIT License
  * @link        https://www.ioa.tw/
  */
@@ -106,7 +106,7 @@ Factory.Icon.prototype.build = function(done) {
   return done()
 }
 Factory.Icon.prototype.parse = function(data) {
-  const importStr = '@import "Lalilo";', basePath = '../icon/', contents = ['//', '// @author      OA Wu <comdan66@gmail.com>', '// @copyright   Copyright (c) 2015 - ' + new Date().getFullYear() + ', Lalilo', '// @license     http://opensource.org/licenses/MIT  MIT License', '// @link        https://www.ioa.tw/', '//', '', importStr]
+  const importStr = '@import "Lalilo";', basePath = '../icon/', contents = ['//', '// @author      OA Wu <oawu.twu@gmail.com>', '// @copyright   Copyright (c) 2015 - ' + new Date().getFullYear() + ', Lalilo', '// @license     http://opensource.org/licenses/MIT  MIT License', '// @link        https://www.ioa.tw/', '//', '', importStr]
   return data = data.match(/\.icon-[a-zA-Z_\-0-9]*:before\s?\{\s*content:\s*"[\\A-Za-z0-9]*";(\s*color:\s*#[A-Za-z0-9]*;)?\s*}/g), data = Array.isArray(data) ? data.map(v => v.replace(/^\.icon-/g, this.class).replace(/\n/g, ' ').replace(/\{\s*/g, '{ ').replace(/\s+/g, ' ')).sort((a, b) => a >= b ? a == b ? 0 : 1 : -1) : [], data.length ? [...contents, '', '@font-face { font-family: "' + this.face + '"; src: url("' + basePath + this.dir + '/fonts/icomoon.eot?t='  + new Date().getTime() + '") format("embedded-opentype"), url("' + basePath + this.dir + '/fonts/icomoon.woff?t=' + new Date().getTime() + '") format("woff"), url("' + basePath + this.dir + '/fonts/icomoon.ttf?t='  + new Date().getTime() + '") format("truetype"), url("' + basePath + this.dir + '/fonts/icomoon.svg?t='  + new Date().getTime() + '") format("svg"); }', '', '*[class^="' + this.face +'-"]:before, *[class*=" ' + this.face +'-"]:before {', '  font-family: "' + this.face + '";', '  speak: none;', '  font-style: normal;', '  font-weight: normal;', '  font-variant: normal;', '}', '', ...data, ''].join("\n") : contents.join("\n")
 }
 

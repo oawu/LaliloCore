@@ -1,23 +1,23 @@
 {
   "name": "LaliloCore",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "🤫 這只是 Lalilo 的核心功能！",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/comdan66/LaliloCore.git"
+    "url": "git+https://github.com/oawu/LaliloCore.git"
   },
   "keywords": [
     "Lalilo"
   ],
   "author": {
     "name": "OA Wu",
-    "email": "comdan66@gmail.com",
+    "email": "oawu.tw@gmail.com",
     "url": "https://www.ioa.tw"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/comdan66/LaliloCore/issues"
+    "url": "https://github.com/oawu/LaliloCore/issues"
   },
-  "homepage": "https://github.com/comdan66/LaliloCore#readme"
+  "homepage": "https://github.com/oawu/LaliloCore#readme"
 }
