@@ -60,7 +60,7 @@ const Factory = function(type, file) {
 
   return Factory.config.loaders
     .filter(({ ext }) => ext !== null)
-    .forEach(loader => Queue.$loader.enqueue(next => Process.exec(`node ${loader.file} --entry "${Factory.config.entry}" --file "${file}" --type ${type}`, error => error ? next(lineRed(`${loader.title} 失敗`, '錯誤原因：'.dim + error.message)) : next(lineBlue(`${loader.title} 成功`, '檔案路徑：'.dim + Path.relative(Factory.root, file).dim)))))
+    .forEach(loader => Queue.$loader.enqueue(next => Process.exec(`node ${loader.file} --dir "${Factory.root}" --entry "${Factory.config.entry}" --file "${file}" --type ${type}`, error => error ? next(lineRed(`${loader.title} 失敗`, '錯誤原因：'.dim + error.message)) : next(lineBlue(`${loader.title} 成功`, '檔案路徑：'.dim + Path.relative(Factory.root, file).dim)))))
 }
 
 Factory.root   = null
