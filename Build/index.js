@@ -106,7 +106,7 @@ module.exports = {
   Compile (closure, Config) {
     const Serve = require('../Serve')
     Queue()
-      .enqueue(Serve.Check)
+      .enqueue(next => Serve.Check(next, Config.php))
       .enqueue(Serve.Compile)
       .enqueue((_, ServeConfig) => closure(ServeConfig, Config))
   },

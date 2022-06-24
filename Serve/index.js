@@ -27,7 +27,7 @@ module.exports = {
     process.on('SIGINT', _ => process.exit(1))
     closure(println("\n" + ' § '.dim + '啟動 Lalilo 開發環境'.bold))
   },
-  Check (closure) {
+  Check (closure, php = null) {
 
     const CmdExists = require('command-exists').sync
 
@@ -52,7 +52,7 @@ module.exports = {
         isDirectory(Config.entry) || fail(null, Path.relative(Setting.root, Config.entry) + Path.sep + ' 不是目錄類型')
 
         // php
-        Config.php = Typeof.object.or(Config.php, {})
+        Config.php = php || Typeof.object.or(Config.php, {})
         Config.php.enable = Typeof.bool.or(Config.php.enable, false)
         Config.php.maxBuffer = Typeof.num.or(Config.php.maxBuffer, 1024 * 1024)
         Config.php.env = Typeof.str.do.or(Config.php.env, env => ['Development', 'Testing', 'Staging', 'Production'].includes(env) ? env : null, 'Development')
