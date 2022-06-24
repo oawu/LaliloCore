@@ -9,13 +9,15 @@ const Path = require('path')
 const SCSS = require('@oawu/scss')
 const FileSystem = require('fs')
 const Notifier = require('./Notifier')
+const Process = require('child_process')
 
 const { verifyDirs, println, isSub } = require('@oawu/helper')
 
 SCSS.minify = false
 
 let Queue = {
-  $: require('@oawu/queue').create(),
+  $file: require('@oawu/queue').create(),
+  $loader: require('@oawu/queue').create(),
   icon: {},
   scss: {},
   file: {},
@@ -28,7 +30,7 @@ let Queue = {
   push (factory, time) {
     let object = this.object(factory)
     if (object === undefined) return 
-    else object[factory.file] = setTimeout(_ => this.$.enqueue(next => factory.build(errors => next(errors, object[factory.file].count = 0))), time, clearTimeout(object[factory.file]))
+    else object[factory.file] = setTimeout(_ => this.$file.enqueue(next => factory.build(errors => next(errors, object[factory.file].count = 0))), time, clearTimeout(object[factory.file]))
   }
 }
 
@@ -54,9 +56,11 @@ const Factory = function(type, file) {
     return Queue.push(Factory.Scss(type, file), 357)
 
   if (isSub(Factory.config.entry, file) && !Factory.config.watch.ignoreDirs.filter(dir => isSub(dir, file)).length && Factory.config.watch.formats.includes(ext))
-    return Queue.$.enqueue(next => Factory.File(type, file).build(next))
+    return Queue.$file.enqueue(next => Factory.File(type, file).build(next))
 
-  return
+  return Factory.config.loaders
+    .filter(({ ext }) => ext !== null)
+    .forEach(loader => Queue.$loader.enqueue(next => Process.exec(`node ${loader.file} --entry "${Factory.config.entry}" --file "${file}" --type ${type}`, error => error ? next(lineRed(`${loader.title} 失敗`, '錯誤原因：'.dim + error.message)) : next(lineBlue(`${loader.title} 成功`, '檔案路徑：'.dim + Path.relative(Factory.root, file).dim)))))
 }
 
 Factory.root   = null

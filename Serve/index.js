@@ -78,6 +78,18 @@ module.exports = {
         Config.watch.formats = Typeof.arr.or(Config.watch.formats, ['.php', '.html', '.css', '.js'])
         Config.watch.ignoreDirs = Typeof.arr.or(Config.watch.ignoreDirs, ['icon']).map(dir => Config.entry + dirOrEmpty(dir)).filter(dir => access(dir) && exists(dir))
 
+        // plugin
+        Config.plugin = Typeof.object.or(Config.plugin, {})
+        Config.loaders = Typeof.arr.or(Config.loaders, []).map(loader => {
+          loader = Typeof.object.or(loader, null)
+          return loader
+            && Typeof.str.notEmpty(loader.title)
+            && Typeof.str.notEmpty(loader.file) ? loader : null
+        })
+        .filter(t => t)
+        .map(({ title, ext = null, file }) => ({ title, ext, file: Setting.root + ['cmd', file].join(Path.sep) }))
+        .filter(({ file }) => exists(file) && access(file, FileSystem.constants.R_OK))
+
         // server
         Config.server = Typeof.object.or(Config.server, {})
         Config.server.domain = Typeof.str.notEmpty.or(Config.server.domain, '127.0.0.1')
@@ -121,11 +133,11 @@ module.exports = {
     if (Config.dir === undefined)
       return closure(Config, Factory)
 
-    Queue()
-      .enqueue(next => title('清空 CSS 目錄', cmdColor('執行指令', 'rm -rf ' + Path.relative(Setting.root, Config.dir.css) + Path.sep + '*'))
+    const q = Queue()
+      q.enqueue(next => title('清空 CSS 目錄', cmdColor('執行指令', 'rm -rf ' + Path.relative(Setting.root, Config.dir.css) + Path.sep + '*'))
         && Process.exec('rm -rf ' + Config.dir.css + '*', error => error ? fail(null, error) : next(done())))
 
-      .enqueue(next => title('檢查 ICON 功能', cmdColor('執行動作', 'verify src/icon/*/style.css'))
+      q.enqueue(next => title('執行 ICON 功能', cmdColor('執行動作', 'verify src/icon/*/style.css'))
         && Promise.all(scanDir(Config.dir.icon, false)
           .map(path => path + Path.sep + 'style.css')
           .filter(file => exists(file))
@@ -133,25 +145,37 @@ module.exports = {
             ? reject(errors)
             : resolve()))))
         .then(_ => next(done()))
-        .catch(errors => fail(null, ...errors)))
+        .catch(errors => fail(null, errors)))
 
-      .enqueue(next => title('檢查 SCSS 功能', cmdColor('執行動作', 'verify src/scss/*/*.scss'))
+      q.enqueue(next => title('執行 SCSS 功能', cmdColor('執行動作', 'verify src/scss/*/*.scss'))
         && setTimeout(_ => Promise.all(scanDir(Config.dir.scss)
           .filter(file => Path.extname(file) == '.scss')
           .map(file => new Promise((resolve, reject) => Factory.Scss('first', file).build(errors => errors.length
             ? reject(errors)
             : resolve()))))
         .then(_ => next(done()))
-        .catch(errors => fail(null, ...errors)), 500))
+        .catch(errors => fail(null, errors)), 500))
       
-      .enqueue(next => closure(Config, Factory))
+      Config.loaders.filter(({ ext }) => ext === null)
+        .forEach(loader => q.enqueue(next => title(`執行 ${loader.title} 功能`, cmdColor('執行動作', `node ${Path.relative(Setting.root, loader.file)}`))
+          && setTimeout(_ => Process.exec(`node ${loader.file} --entry "${Config.entry}"`, error => error ? fail(null, error) : next(done())), 100)))
+
+      Config.loaders.filter(({ ext }) => ext !== null)
+        .forEach(loader => q.enqueue(next => title(`執行 ${loader.title} 功能`, cmdColor('執行動作', `verify src/*/*${loader.ext}`))
+            && setTimeout(_ => Promise.all(scanDir(Config.entry)
+              .filter(file => Path.extname(file) == loader.ext)
+              .map(file => new Promise((resolve, reject) => Process.exec(`node ${loader.file} --entry "${Config.entry}" --file "${file}" --type first`, error => error ? reject(error) : resolve()))))
+            .then(_ => next(done()))
+            .catch(errors => fail(null, errors)), 100)))
+
+      q.enqueue(next => closure(Config, Factory))
   },
   Watch (closure, Config, Factory) {
     title('監控 FILE 檔案', cmdColor('執行動作', 'watch files'))
 
     require('chokidar')
       .watch(Config.entry + '**' + Path.sep + '*')
-      .on('add', file    => ready && Factory('create', file))
+      .on('add',    file => ready && Factory('create', file))
       .on('change', file => ready && Factory('update', file))
       .on('unlink', file => ready && Factory('delete', file))
       .on('error', error => ready ? title('監聽 FILE 檔案時發生錯誤！').fail(null, error) : fail(null, error))
