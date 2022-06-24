@@ -158,13 +158,13 @@ module.exports = {
       
       Config.loaders.filter(({ ext }) => ext === null)
         .forEach(loader => q.enqueue(next => title(`執行 ${loader.title} 功能`, cmdColor('執行動作', `node ${Path.relative(Setting.root, loader.file)}`))
-          && setTimeout(_ => Process.exec(`node ${loader.file} --env "${Config.php.env}" --base-url "${Config.php.baseURL}" --dir "${Setting.root}" --entry "${Config.entry}"`, error => error ? fail(null, error) : next(done())), 100)))
+          && setTimeout(_ => Process.exec(`node ${loader.file} --env "${Config.php.env}" --base-url "${Config.php.baseURL || '/'}" --dir "${Setting.root}" --entry "${Config.entry}"`, error => error ? fail(null, error) : next(done())), 100)))
 
       Config.loaders.filter(({ ext }) => ext !== null)
         .forEach(loader => q.enqueue(next => title(`執行 ${loader.title} 功能`, cmdColor('執行動作', `verify src/*/*${loader.ext}`))
             && setTimeout(_ => Promise.all(scanDir(Config.entry)
               .filter(file => Path.extname(file) == loader.ext)
-              .map(file => new Promise((resolve, reject) => Process.exec(`node ${loader.file} --env "${Config.php.env}" --base-url "${Config.php.baseURL}" --dir "${Setting.root}" --entry "${Config.entry}" --file "${file}" --type first`, error => error ? reject(error) : resolve()))))
+              .map(file => new Promise((resolve, reject) => Process.exec(`node ${loader.file} --env "${Config.php.env}" --base-url "${Config.php.baseURL || '/'}" --dir "${Setting.root}" --entry "${Config.entry}" --file "${file}" --type first`, error => error ? reject(error) : resolve()))))
             .then(_ => next(done()))
             .catch(errors => fail(null, errors)), 100)))
 
