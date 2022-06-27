@@ -87,7 +87,7 @@ module.exports = {
             && Typeof.str.notEmpty(loader.file) ? loader : null
         })
         .filter(t => t)
-        .map(({ title, ext = null, file }) => ({ title, ext, file: Setting.root + ['cmd', file].join(Path.sep) }))
+        .map(({ title, ext = null, dir = '', file }) => ({ title, ext, dir: Path.resolve(Setting.root + dir) + Path.sep, file: Setting.root + ['cmd', file].join(Path.sep) }))
         .filter(({ file }) => exists(file) && access(file, FileSystem.constants.R_OK))
 
         // server
@@ -137,7 +137,7 @@ module.exports = {
       q.enqueue(next => title('清空 CSS 目錄', cmdColor('執行指令', 'rm -rf ' + Path.relative(Setting.root, Config.dir.css) + Path.sep + '*'))
         && Process.exec('rm -rf ' + Config.dir.css + '*', error => error ? fail(null, error) : next(done())))
 
-      q.enqueue(next => title('執行 ICON 功能', cmdColor('執行動作', 'verify src/icon/*/style.css'))
+      q.enqueue(next => title('執行 ICON 功能', cmdColor('執行動作', 'verify src/icon/**/style.css'))
         && Promise.all(scanDir(Config.dir.icon, false)
           .map(path => path + Path.sep + 'style.css')
           .filter(file => exists(file))
@@ -147,7 +147,7 @@ module.exports = {
         .then(_ => next(done()))
         .catch(errors => fail(null, errors)))
 
-      q.enqueue(next => title('執行 SCSS 功能', cmdColor('執行動作', 'verify src/scss/*/*.scss'))
+      q.enqueue(next => title('執行 SCSS 功能', cmdColor('執行動作', 'verify src/scss/**/*.scss'))
         && setTimeout(_ => Promise.all(scanDir(Config.dir.scss)
           .filter(file => Path.extname(file) == '.scss')
           .map(file => new Promise((resolve, reject) => Factory.Scss('first', file).build(errors => errors.length
@@ -161,8 +161,8 @@ module.exports = {
           && setTimeout(_ => Process.exec(`node ${loader.file} --env "${Config.php.env}" --base-url "${Config.php.baseURL || '/'}" --dir "${Setting.root}" --entry "${Config.entry}"`, error => error ? fail(null, error) : next(done())), 100)))
 
       Config.loaders.filter(({ ext }) => ext !== null)
-        .forEach(loader => q.enqueue(next => title(`執行 ${loader.title} 功能`, cmdColor('執行動作', `verify src/*/*${loader.ext}`))
-            && setTimeout(_ => Promise.all(scanDir(Config.entry)
+        .forEach(loader => q.enqueue(next => title(`執行 ${loader.title} 功能`, cmdColor('執行動作', `verify ${Path.relative(Setting.root, loader.dir)}/**/*${loader.ext}`))
+            && setTimeout(_ => Promise.all(scanDir(loader.dir)
               .filter(file => Path.extname(file) == loader.ext)
               .map(file => new Promise((resolve, reject) => Process.exec(`node ${loader.file} --env "${Config.php.env}" --base-url "${Config.php.baseURL || '/'}" --dir "${Setting.root}" --entry "${Config.entry}" --file "${file}" --type first`, error => error ? reject(error) : resolve()))))
             .then(_ => next(done()))
@@ -179,7 +179,19 @@ module.exports = {
       .on('change', file => ready && Factory('update', file))
       .on('unlink', file => ready && Factory('delete', file))
       .on('error', error => ready ? title('監聽 FILE 檔案時發生錯誤！').fail(null, error) : fail(null, error))
-      .on('ready', _ => closure(Config, Factory, done()))
+      .on('ready', _ => {
+        Config.loaders.filter(({ ext }) => ext !== null).length
+          ? done()
+            && title('監控 Loader 檔案', cmdColor('執行動作', 'watch loader files'))
+            && require('chokidar')
+              .watch(Setting.root + '**' + Path.sep + '*')
+              .on('add',    file => ready && Factory.loaders('create', file))
+              .on('change', file => ready && Factory.loaders('update', file))
+              .on('unlink', file => ready && Factory.loaders('delete', file))
+              .on('error', error => ready ? title('監聽 Loader 檔案時發生錯誤！').fail(null, error) : fail(null, error))
+              .on('ready', _ => closure(Config, Factory, done()))
+          : closure(Config, Factory, done())
+      })
   },
   Server (closure, Config, Factory) {
     const Port = require('./Port')

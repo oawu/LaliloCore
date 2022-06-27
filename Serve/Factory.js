@@ -58,8 +58,16 @@ const Factory = function(type, file) {
   if (isSub(Factory.config.entry, file) && !Factory.config.watch.ignoreDirs.filter(dir => isSub(dir, file)).length && Factory.config.watch.formats.includes(ext))
     return Queue.$file.enqueue(next => Factory.File(type, file).build(next))
 
-  return Factory.config.loaders
-    .filter(({ ext }) => ext !== null)
+  return null
+}
+Factory.loaders = (type, file) => {
+  const last = file.split(Path.sep).pop()
+  if (last == '.DS_Store') return
+  
+  const ext = Path.extname(last)
+
+  Factory.config.loaders
+    .filter(({ ext: e }) => e !== null && e === ext)
     .forEach(loader => Queue.$loader.enqueue(next => Process.exec(`node ${loader.file} --env "${Factory.config.php.env}" --base-url "${Factory.config.php.baseURL || '/'}" --dir "${Factory.root}" --entry "${Factory.config.entry}" --file "${file}" --type ${type}`, error => error ? next(lineRed(`${loader.title} 失敗`, '錯誤原因：'.dim + error.message)) : next(lineBlue(`${loader.title} 成功`, '檔案路徑：'.dim + Path.relative(Factory.root, file).dim)))))
 }
 
